@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// Parse the download url.
 func Parse(url string) (string, error) {
 	err := errors.New("lore: not a valid url")
 
@@ -28,6 +29,7 @@ func Parse(url string) (string, error) {
 	return url, nil
 }
 
+// Get the data from the url.
 func Get(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {

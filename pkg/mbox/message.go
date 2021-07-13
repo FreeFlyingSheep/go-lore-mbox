@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// Message represents a parsed mail message.
 type Message struct {
 	MessageId string
 	InReplyTo string
@@ -17,10 +18,11 @@ type Message struct {
 	Cc        []*mail.Address
 	Subject   string
 	Date      time.Time
-	Body      []byte
+	Body      []string
 	Exist     bool
 }
 
+// Read messages from mbox data.
 func Read(data []byte) ([]*Message, error) {
 	messages := []*Message{}
 	contents := strings.Split(string(data), "From mboxrd@z Thu Jan  1 00:00:00 1970\n")
@@ -42,6 +44,7 @@ func Read(data []byte) ([]*Message, error) {
 func convert(m *mail.Message) (*Message, error) {
 	message := &Message{}
 
+	// Ignore the content after the angle brackets
 	id := m.Header.Get("Message-Id")
 	start := strings.Index(id, "<")
 	end := strings.LastIndex(id, ">")
@@ -50,6 +53,7 @@ func convert(m *mail.Message) (*Message, error) {
 	}
 	message.MessageId = id[start : end+1]
 
+	// Ignore the content after the angle brackets
 	id = m.Header.Get("In-Reply-To")
 	if id != "" {
 		start = strings.Index(id, "<")
@@ -85,10 +89,13 @@ func convert(m *mail.Message) (*Message, error) {
 		return nil, fmt.Errorf("mbox: invalid Date: %v", err)
 	}
 
-	message.Body, err = io.ReadAll(m.Body)
+	body, err := io.ReadAll(m.Body)
 	if err != nil {
 		return nil, fmt.Errorf("mbox: invalid Body: %v", err)
 	}
+	message.Body = strings.Split(string(body), "\n")
+	// Remove the last empty line
+	message.Body = message.Body[:len(message.Body)-1]
 
 	message.Exist = true
 
