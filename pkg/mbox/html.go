@@ -1,19 +1,29 @@
 package mbox
 
 import (
+	"os"
 	"strings"
 )
 
 // Parse parses the thread for generating HTML.
-func (t *Thread) Parse() []string {
+func (t *Thread) Parse(css, js string) []string {
 	content := []string{}
 
 	content = append(content, "<!DOCTYPE html>")
 	content = append(content, "<html>")
 
 	content = append(content, "<head>")
+
 	content = append(content, "<meta charset=\"utf-8\">")
-	content = append(content, "<title>"+t.Name+"</title>")
+
+	content = append(content, parseTitle(t))
+
+	c := parseCSS(css)
+	content = append(content, c...)
+
+	j := parseJS(js)
+	content = append(content, j...)
+
 	content = append(content, "</header>")
 
 	content = append(content, "<body>")
@@ -33,8 +43,43 @@ func (t *Thread) Parse() []string {
 	return content
 }
 
+func parseTitle(t *Thread) string {
+	return "<title>" + t.Name + "</title>"
+}
+
+func parseCSS(css string) []string {
+	content := []string{}
+
+	data, err := os.ReadFile(css)
+	if err != nil {
+		return content
+	}
+
+	content = append(content, "<style>")
+	c := strings.Split(string(data), "\n")
+	content = append(content, c...)
+	content = append(content, "</style>")
+	return content
+}
+
+func parseJS(js string) []string {
+	content := []string{}
+
+	data, err := os.ReadFile(js)
+	if err != nil {
+		return content
+	}
+
+	content = append(content, "<script>")
+	j := strings.Split(string(data), "\n")
+	content = append(content, j...)
+	content = append(content, "</script>")
+	return content
+}
+
 func parseThread(node *ThreadNode, content *[]string) {
-	title := "<a href=\"" + "\">" + node.Mesg.Subject + "</a>"
+	title := "<a href=\"#" + node.Mesg.MessageId +
+		"\">" + node.Mesg.Subject + "</a>"
 	if node.Mesg.Exist {
 		title += " " + node.Mesg.From.Name
 	}
@@ -63,11 +108,15 @@ func parseData(node *ThreadNode, content *[]string) {
 func parseMessage(m *Message) []string {
 	content := []string{}
 
-	content = append(content, "<div class=\"message\">")
+	message := "<div id=\"" + m.MessageId + "\" class=\"message\">"
+	content = append(content, message)
 
 	if !m.Exist {
-		line := "<div class=\"not-found\">[not found]<br /><br /></div>"
-		content = append(content, line)
+		content = append(content, "<div class=\"not-found\">")
+		content = append(content, "<div>[not found]</div>")
+		content = append(content, "<br /><br />")
+		content = append(content, "</div>")
+		content = append(content, "</div>")
 		return content
 	}
 
@@ -135,7 +184,7 @@ func parseBody(lines []string) []string {
 	content = append(content, "<div class=\"message-body\">")
 
 	for _, line := range lines {
-		content = append(content, parseLine(line, false))
+		content = append(content, parseLine(line))
 	}
 
 	content = append(content, "</div>")
@@ -143,39 +192,35 @@ func parseBody(lines []string) []string {
 	return content
 }
 
-func parseLine(line string, nested bool) string {
+func parseLine(line string) string {
 	// Escape special symbols
 	line = strings.ReplaceAll(line, "<", "&lt;")
 	line = strings.ReplaceAll(line, ">", "&gt;")
 
 	if line == "---" {
-		line = "<span class=\"git-start\">" + line
-	} else if line == "--" {
-		line = "<span class=\"git-end\">" + line
-	} else if strings.HasPrefix(line, "- ") {
-		line = "<span class=\"git-delete\">" + line
-	} else if strings.HasPrefix(line, "+ ") {
-		line = "<span class=\"git-add\">" + line
+		line = "<div class=\"git-start\">" + line
+	} else if line == "--" || line == "-- " {
+		line = "<div class=\"git-end\">" + line
 	} else if strings.HasPrefix(line, "--- ") {
-		line = "<span class=\"git-before\">" + line
+		line = "<div class=\"git-before\">" + line
 	} else if strings.HasPrefix(line, "+++ ") {
-		line = "<span class=\"git-after\">" + line
+		line = "<div class=\"git-after\">" + line
 	} else if strings.HasPrefix(line, "@@ ") {
-		line = "<span class=\"git-change\">" + line
+		line = "<div class=\"git-change\">" + line
 	} else if strings.HasPrefix(line, "diff ") {
-		line = "<span class=\"git-diff\">" + line
+		line = "<div class=\"git-diff\">" + line
 	} else if strings.HasPrefix(line, "index ") {
-		line = "<span class=\"git-index\">" + line
-	} else if strings.HasPrefix(line, "&gt; ") {
-		// Parse nested quote
-		line = "<span class=\"quote\">" + line[:5] + parseLine(line[5:], true)
+		line = "<div class=\"git-index\">" + line
+	} else if strings.HasPrefix(line, "&gt;") {
+		line = "<div class=\"quote\">" + line
+	} else if strings.HasPrefix(line, "-") {
+		line = "<div class=\"git-delete\">" + line
+	} else if strings.HasPrefix(line, "+") {
+		line = "<div class=\"git-add\">" + line
 	} else {
-		line = "<span class=\"text\">" + line
+		line = "<div class=\"text\">" + line
 	}
 
-	if !nested {
-		line += "<br />"
-	}
-	line += "</span>"
+	line += "</div>"
 	return line
 }

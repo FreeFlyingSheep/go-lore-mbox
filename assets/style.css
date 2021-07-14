@@ -1,0 +1,113 @@
+body {
+    display: -webkit-flex;
+    display: flex;
+    background-color: #e9ebfe;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    font-family: monospace;
+    font-size: large;
+}
+
+ul {
+    margin: 5px;
+    padding-left: 2em;
+}
+
+.thread {
+    flex-basis: 350px;
+    background-color: #fff2e2;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.content {
+    flex-grow: 1;
+    overflow: auto;
+    padding: 10px;
+}
+
+.message {
+    border-bottom: #000000 2px solid;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+}
+
+.message-header {
+    background-color: #dce2f1;
+}
+
+.message-body {
+    padding-top: 5px;
+    line-height: 150%;
+}
+
+.subject {
+    background-color: #faf9de;
+    margin-bottom: 10px;
+}
+
+.date {
+    background-color: #faf9de;
+    margin-bottom: 10px;
+}
+
+.from {
+    background-color: #dce2f1;
+}
+
+.to {
+    background-color: #dce2f1;
+}
+
+.cc {
+    background-color: #dce2f1;
+}
+
+.git-start {
+    background-color: #faf9de;
+}
+
+.git-end {
+    background-color: #faf9de;
+}
+
+.git-delete {
+    background-color: #fde6e0;
+}
+
+.git-add {
+    background-color: #e3edcd;
+}
+
+.git-before {
+    background-color: #fde6e0;
+}
+
+.git-after {
+    background-color: #e3edcd;
+}
+
+.git-change {
+    background-color: #faf9de;
+}
+
+.git-diff {
+    background-color: #faf9de;
+}
+
+.git-index {
+    background-color: #faf9de;
+}
+
+.quote {
+    background-color: #eaeaef;
+}
+
+.text {
+    background-color: #dce2f1;
+}
+
+.not-found {
+    background-color: #fde6e0;
+}
