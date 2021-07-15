@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 	"strings"
@@ -10,9 +11,12 @@ import (
 )
 
 func main() {
-	url := "https://lore.kernel.org/linux-arch/CAK8P3a2Qu_BUcGFpgktXOwsomuhN6aje6mB6EwTka0GBaoL4hw@mail.gmail.com/t.mbox.gz"
+	u := flag.String("u", "", "https://lore.kernel.org/xxx/xxx")
+	c := flag.String("c", "assets/style.css", "css file")
+	j := flag.String("j", "assets/tools.js", "js file")
+	flag.Parse()
 
-	url, err := lore.Parse(url)
+	url, err := lore.Parse(*u)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -32,7 +36,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	lines := thread.Parse("assets/style.css", "assets/tools.js")
+	lines := thread.Parse(*c, *j)
 	content := strings.Join(lines, "\n")
 	os.WriteFile("test.html", []byte(content), os.ModePerm)
 }

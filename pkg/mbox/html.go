@@ -21,9 +21,6 @@ func (t *Thread) Parse(css, js string) []string {
 	c := parseCSS(css)
 	content = append(content, c...)
 
-	j := parseJS(js)
-	content = append(content, j...)
-
 	content = append(content, "</header>")
 
 	content = append(content, "<body>")
@@ -35,6 +32,9 @@ func (t *Thread) Parse(css, js string) []string {
 	content = append(content, "<div class=\"content\">")
 	parseData(t.Node, &content)
 	content = append(content, "</div>")
+
+	j := parseJS(js)
+	content = append(content, j...)
 
 	content = append(content, "</body>")
 
@@ -115,10 +115,20 @@ func parseMessage(m *Message) []string {
 		content = append(content, "<div class=\"not-found\">")
 		content = append(content, "<div>[not found]</div>")
 		content = append(content, "<br /><br />")
-		content = append(content, "</div>")
-		content = append(content, "</div>")
+		content = append(content, "</div>") // not-found
+		content = append(content, "</div>") // message
 		return content
 	}
+
+	content = append(content, "<div class=\"subject\">")
+	content = append(content, m.Subject)
+	content = append(content, "</div>") // subject
+
+	date := "<div class=\"date\">" + m.Date.String() + "</div>"
+	content = append(content, date)
+
+	fold := "<div class=\"fold\" id=\"fold-" + m.MessageId + "\">"
+	content = append(content, fold)
 
 	header := parseHeader(m)
 	content = append(content, header...)
@@ -126,7 +136,9 @@ func parseMessage(m *Message) []string {
 	body := parseBody(m.Body)
 	content = append(content, body...)
 
-	content = append(content, "</div>")
+	content = append(content, "</div>") // fold
+
+	content = append(content, "</div>") // message
 
 	return content
 }
@@ -136,12 +148,6 @@ func parseHeader(m *Message) []string {
 
 	content = append(content, "<div class=\"message-header\">")
 
-	subject := "<div class=\"subject\">" + m.Subject + "</div>"
-	content = append(content, subject)
-
-	date := "<div class=\"date\">" + m.Date.String() + "</div>"
-	content = append(content, date)
-
 	content = append(content, "<div class=\"from\">From:")
 	content = append(content, "<ul>")
 	from := "<li>" + m.From.Name +
@@ -149,7 +155,7 @@ func parseHeader(m *Message) []string {
 		"\">&lt;" + m.From.Address + "&gt;</a></li>"
 	content = append(content, from)
 	content = append(content, "</ul>")
-	content = append(content, "</div>")
+	content = append(content, "</div>") // from
 
 	content = append(content, "<div class=\"to\">To:")
 	content = append(content, "<ul>")
@@ -160,7 +166,7 @@ func parseHeader(m *Message) []string {
 		content = append(content, to)
 	}
 	content = append(content, "</ul>")
-	content = append(content, "</div>")
+	content = append(content, "</div>") // to
 
 	content = append(content, "<div class=\"cc\">Cc:")
 	content = append(content, "<ul>")
@@ -171,9 +177,9 @@ func parseHeader(m *Message) []string {
 		content = append(content, cc)
 	}
 	content = append(content, "</ul>")
-	content = append(content, "</div>")
+	content = append(content, "</div>") // cc
 
-	content = append(content, "</div>")
+	content = append(content, "</div>") // message-header
 
 	return content
 }
@@ -183,44 +189,10 @@ func parseBody(lines []string) []string {
 
 	content = append(content, "<div class=\"message-body\">")
 
-	for _, line := range lines {
-		content = append(content, parseLine(line))
-	}
+	lines = parseLines(lines)
+	content = append(content, lines...)
 
-	content = append(content, "</div>")
+	content = append(content, "</div>") // message-body
 
 	return content
-}
-
-func parseLine(line string) string {
-	// Escape special symbols
-	line = strings.ReplaceAll(line, "<", "&lt;")
-	line = strings.ReplaceAll(line, ">", "&gt;")
-
-	if line == "---" {
-		line = "<div class=\"git-start\">" + line
-	} else if line == "--" || line == "-- " {
-		line = "<div class=\"git-end\">" + line
-	} else if strings.HasPrefix(line, "--- ") {
-		line = "<div class=\"git-before\">" + line
-	} else if strings.HasPrefix(line, "+++ ") {
-		line = "<div class=\"git-after\">" + line
-	} else if strings.HasPrefix(line, "@@ ") {
-		line = "<div class=\"git-change\">" + line
-	} else if strings.HasPrefix(line, "diff ") {
-		line = "<div class=\"git-diff\">" + line
-	} else if strings.HasPrefix(line, "index ") {
-		line = "<div class=\"git-index\">" + line
-	} else if strings.HasPrefix(line, "&gt;") {
-		line = "<div class=\"quote\">" + line
-	} else if strings.HasPrefix(line, "-") {
-		line = "<div class=\"git-delete\">" + line
-	} else if strings.HasPrefix(line, "+") {
-		line = "<div class=\"git-add\">" + line
-	} else {
-		line = "<div class=\"text\">" + line
-	}
-
-	line += "</div>"
-	return line
 }

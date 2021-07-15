@@ -64,6 +64,10 @@ ul {
     background-color: #dce2f1;
 }
 
+.text {
+    background-color: #dce2f1;
+}
+
 .git-start {
     background-color: #faf9de;
 }
@@ -72,7 +76,7 @@ ul {
     background-color: #faf9de;
 }
 
-.git-delete {
+.git-del {
     background-color: #fde6e0;
 }
 
@@ -104,10 +108,15 @@ ul {
     background-color: #eaeaef;
 }
 
-.text {
-    background-color: #dce2f1;
-}
-
 .not-found {
     background-color: #fde6e0;
+}
+
+.fold {
+    display: block;
+}
+
+.button {
+    display: inline;
+    margin-bottom: 10px;
 }

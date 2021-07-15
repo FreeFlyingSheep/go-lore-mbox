@@ -22,7 +22,10 @@ func Parse(url string) (string, error) {
 
 	pos := strings.LastIndex(url, "/T")
 	if pos < 0 {
-		return url, err
+		pos = strings.LastIndex(url, "/")
+		if pos < 0 {
+			return url, err
+		}
 	}
 
 	url = url[:pos] + "/t.mbox.gz"
