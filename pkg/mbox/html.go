@@ -46,7 +46,7 @@ func (t *Thread) Parse(css, js string) []string {
 	content = append(content, "<body>")
 
 	content = append(content, "<div class=\"thread\">")
-	parseThread(t.Node, &content)
+	parseThread(t.Node, &content, 1)
 	content = append(content, "</div>")
 
 	content = append(content, "<div class=\"content\">")
@@ -97,11 +97,12 @@ func parseJS(js string) []string {
 	return content
 }
 
-func parseThread(node *ThreadNode, content *[]string) {
-	title := "<a href=\"#" + node.Mesg.MessageId +
-		"\">" + node.Mesg.Subject + "</a>"
-	if node.Mesg.Exist {
-		title += " " + node.Mesg.From.Name
+func parseThread(node *ThreadNode, content *[]string, depth int) {
+	title := "<a href=\"#" + node.Mesg.MessageId + "\">"
+	if depth == 1 || !node.Mesg.Exist {
+		title += node.Mesg.Subject + "</a>"
+	} else {
+		title += node.Mesg.From.Name + "</a>"
 	}
 	*content = append(*content, title)
 
@@ -109,7 +110,7 @@ func parseThread(node *ThreadNode, content *[]string) {
 		*content = append(*content, "<ul>")
 		for _, n := range node.Child {
 			*content = append(*content, "<li>")
-			parseThread(n, content)
+			parseThread(n, content, depth+1)
 			*content = append(*content, "</li>")
 		}
 		*content = append(*content, "</ul>")
@@ -134,7 +135,6 @@ func parseMessage(m *Message) []string {
 	if !m.Exist {
 		content = append(content, "<div class=\"not-found\">")
 		content = append(content, "<div>[not found]</div>")
-		content = append(content, "<br /><br />")
 		content = append(content, "</div>") // not-found
 		content = append(content, "</div>") // message
 		return content
@@ -154,11 +154,15 @@ func parseMessage(m *Message) []string {
 func parseHeader(m *Message) []string {
 	content := []string{}
 
+	content = append(content, "<div class=\"found\">")
+
 	subject := "<div class=\"subject\">" + m.Subject + "</div>"
 	content = append(content, subject)
 
 	date := "<div class=\"date\">" + m.Date.String() + "</div>"
 	content = append(content, date)
+
+	content = append(content, "</div>") // found
 
 	button := parseButton("message-header")
 	content = append(content, button...)
@@ -226,7 +230,7 @@ func parseButton(class string) []string {
 	button := "<div id=\"button-" + id + "\" class=\"button\">"
 	content = append(content, button)
 
-	button = "<a href=\"javascript:fold('" + id + "')\">[-] Collapse</a>"
+	button = "<a href=\"javascript:fold('" + id + "')\">[-]</a>"
 	content = append(content, button)
 
 	content = append(content, "</div>") // button
@@ -305,8 +309,8 @@ func parseMode(line string) mode {
 
 func parseLine(line string) string {
 	// Escape special symbols
-	line = strings.ReplaceAll(line, "\"", "&quot;")
 	line = strings.ReplaceAll(line, "&", "&amp;")
+	line = strings.ReplaceAll(line, "\"", "&quot;")
 	line = strings.ReplaceAll(line, "<", "&lt;")
 	line = strings.ReplaceAll(line, ">", "&gt;")
 	line = "<pre>" + line + "</pre>"

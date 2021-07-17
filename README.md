@@ -8,7 +8,11 @@ Golang cli for custom style lore.kernel.org.
 - Parsing mbox to generate readable HTML.
 - Supports custom style.
 
-## Examples
+## How to use
+
+```bash
+go run cmd/lore-mbox/main.go -u https://lore.kernel.org/xxx/xxx
+```
 
 ### Flags
 
@@ -53,11 +57,11 @@ The generated HTML file has the following format:
             <div class="date">Date</div>
 
             <div id="button-0" class="button">
-                <a href="javascript:fold('0')">[-] Collapse</a>
+                <a href="javascript:fold('0')">[-]</a>
             </div>
             <div id="fold-0" class="message-header fold">
                 <div id="button-1" class="button">
-                    <a href="javascript:fold('1')">[-] Collapse</a>
+                    <a href="javascript:fold('1')">[-]</a>
                 </div>
                 <div id="fold-1" class="from fold">
                     From:
@@ -67,7 +71,7 @@ The generated HTML file has the following format:
                 </div>
 
                 <div id="button-2" class="button">
-                    <a href="javascript:fold('2')">[-] Collapse</a>
+                    <a href="javascript:fold('2')">[-]</a>
                 </div>
                 <div id="fold-2" class="to fold">
                     To:
@@ -77,7 +81,7 @@ The generated HTML file has the following format:
                 </div>
                 
                 <div id="button-3" class="button">
-                    <a href="javascript:fold('3')">[-] Collapse</a>
+                    <a href="javascript:fold('3')">[-]</a>
                 </div>
                 <div id="fold-3" class="cc fold">
                     Cc:
@@ -88,11 +92,11 @@ The generated HTML file has the following format:
             </div>
 
             <div id="button-4" class="button">
-                <a href="javascript:fold('4')">[-] Collapse</a>
+                <a href="javascript:fold('4')">[-]</a>
             </div>
             <div id="fold-4" class="message-body fold">
                 <div id="button-5" class="button">
-                    <a href="javascript:fold('5')">[-] Collapse</a>
+                    <a href="javascript:fold('5')">[-]</a>
                 </div>
                 <div id="fold-5" class="text fold">
                     <pre>Code</pre>

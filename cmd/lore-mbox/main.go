@@ -38,5 +38,8 @@ func main() {
 
 	lines := thread.Parse(*c, *j)
 	content := strings.Join(lines, "\n")
-	os.WriteFile("test.html", []byte(content), os.ModePerm)
+	err = os.WriteFile("test.html", []byte(content), os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
