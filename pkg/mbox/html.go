@@ -2,8 +2,28 @@ package mbox
 
 import (
 	"os"
+	"strconv"
 	"strings"
 )
+
+type mode int
+
+const (
+	undefined mode = iota
+	text
+	start
+	end
+	before
+	after
+	change
+	diff
+	index
+	add
+	del
+	quote
+)
+
+var gid int
 
 // Parse parses the thread for generating HTML.
 func (t *Thread) Parse(css, js string) []string {
@@ -120,23 +140,11 @@ func parseMessage(m *Message) []string {
 		return content
 	}
 
-	content = append(content, "<div class=\"subject\">")
-	content = append(content, m.Subject)
-	content = append(content, "</div>") // subject
-
-	date := "<div class=\"date\">" + m.Date.String() + "</div>"
-	content = append(content, date)
-
-	fold := "<div class=\"fold\" id=\"fold-" + m.MessageId + "\">"
-	content = append(content, fold)
-
 	header := parseHeader(m)
 	content = append(content, header...)
 
 	body := parseBody(m.Body)
 	content = append(content, body...)
-
-	content = append(content, "</div>") // fold
 
 	content = append(content, "</div>") // message
 
@@ -146,9 +154,18 @@ func parseMessage(m *Message) []string {
 func parseHeader(m *Message) []string {
 	content := []string{}
 
-	content = append(content, "<div class=\"message-header\">")
+	subject := "<div class=\"subject\">" + m.Subject + "</div>"
+	content = append(content, subject)
 
-	content = append(content, "<div class=\"from\">From:")
+	date := "<div class=\"date\">" + m.Date.String() + "</div>"
+	content = append(content, date)
+
+	button := parseButton("message-header")
+	content = append(content, button...)
+
+	button = parseButton("from")
+	content = append(content, button...)
+	content = append(content, "From:")
 	content = append(content, "<ul>")
 	from := "<li>" + m.From.Name +
 		" <a href=\"mailto:" + m.From.Address +
@@ -157,7 +174,9 @@ func parseHeader(m *Message) []string {
 	content = append(content, "</ul>")
 	content = append(content, "</div>") // from
 
-	content = append(content, "<div class=\"to\">To:")
+	button = parseButton("to")
+	content = append(content, button...)
+	content = append(content, "To:")
 	content = append(content, "<ul>")
 	for _, t := range m.To {
 		to := "<li>" + t.Name +
@@ -168,7 +187,9 @@ func parseHeader(m *Message) []string {
 	content = append(content, "</ul>")
 	content = append(content, "</div>") // to
 
-	content = append(content, "<div class=\"cc\">Cc:")
+	button = parseButton("cc")
+	content = append(content, button...)
+	content = append(content, "Cc:")
 	content = append(content, "<ul>")
 	for _, c := range m.Cc {
 		cc := "<li>" + c.Name +
@@ -187,7 +208,8 @@ func parseHeader(m *Message) []string {
 func parseBody(lines []string) []string {
 	content := []string{}
 
-	content = append(content, "<div class=\"message-body\">")
+	button := parseButton("message-body")
+	content = append(content, button...)
 
 	lines = parseLines(lines)
 	content = append(content, lines...)
@@ -195,4 +217,98 @@ func parseBody(lines []string) []string {
 	content = append(content, "</div>") // message-body
 
 	return content
+}
+
+func parseButton(class string) []string {
+	content := []string{}
+	id := strconv.Itoa(gid)
+
+	button := "<div id=\"button-" + id + "\" class=\"button\">"
+	content = append(content, button)
+
+	button = "<a href=\"javascript:fold('" + id + "')\">[-] Collapse</a>"
+	content = append(content, button)
+
+	content = append(content, "</div>") // button
+
+	div := "<div id=\"fold-" + id + "\" class=\"" + class + " fold\">"
+	content = append(content, div)
+
+	gid++
+	return content
+}
+
+func parseLines(lines []string) []string {
+	modes := map[mode]string{
+		undefined: "undefined",
+		text:      "text",
+		start:     "git-start",
+		end:       "git-end",
+		before:    "git-before",
+		after:     "git-after",
+		change:    "git-change",
+		diff:      "git-diff",
+		index:     "git-index",
+		add:       "git-add",
+		del:       "git-del",
+		quote:     "quote",
+	}
+
+	content := []string{}
+	m, last := undefined, undefined
+
+	for _, line := range lines {
+		m = parseMode(line)
+		if last != undefined && m != last {
+			content = append(content, "</div>")
+		}
+		for k, v := range modes {
+			if last != k && m == k {
+				button := parseButton(v)
+				content = append(content, button...)
+				break
+			}
+		}
+		last = m
+		content = append(content, parseLine(line))
+	}
+
+	content = append(content, "</div>")
+	return content
+}
+
+func parseMode(line string) mode {
+	if line == "---" {
+		return start
+	} else if line == "--" || line == "-- " {
+		return end
+	} else if strings.HasPrefix(line, "--- ") {
+		return before
+	} else if strings.HasPrefix(line, "+++ ") {
+		return after
+	} else if strings.HasPrefix(line, "@@ ") {
+		return change
+	} else if strings.HasPrefix(line, "diff ") {
+		return diff
+	} else if strings.HasPrefix(line, "index ") {
+		return index
+	} else if strings.HasPrefix(line, ">") {
+		return quote
+	} else if strings.HasPrefix(line, "+") {
+		return add
+	} else if strings.HasPrefix(line, "-") {
+		return del
+	} else {
+		return text
+	}
+}
+
+func parseLine(line string) string {
+	// Escape special symbols
+	line = strings.ReplaceAll(line, "\"", "&quot;")
+	line = strings.ReplaceAll(line, "&", "&amp;")
+	line = strings.ReplaceAll(line, "<", "&lt;")
+	line = strings.ReplaceAll(line, ">", "&gt;")
+	line = "<pre>" + line + "</pre>"
+	return line
 }

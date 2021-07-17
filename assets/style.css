@@ -5,8 +5,6 @@ body {
     margin: 0;
     padding: 0;
     height: 100vh;
-    font-family: monospace;
-    font-size: large;
 }
 
 ul {
@@ -38,8 +36,7 @@ ul {
 }
 
 .message-body {
-    padding-top: 5px;
-    line-height: 150%;
+    background-color: #dce2f1;
 }
 
 .subject {
@@ -117,6 +114,5 @@ ul {
 }
 
 .button {
-    display: inline;
-    margin-bottom: 10px;
+    background-color: #faf9de;
 }
