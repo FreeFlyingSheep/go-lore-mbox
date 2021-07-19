@@ -10,22 +10,34 @@ Golang cli for custom style lore.kernel.org.
 
 ## How to use
 
+HTML:
+
 ```bash
-go run cmd/lore-mbox/main.go -u https://lore.kernel.org/xxx/xxx
+go run cmd/lore-mbox/main.go -m html -n <name> -u <https://lore.kernel.org/xxx/xxx>
+```
+
+JSON:
+
+```bash
+go run cmd/lore-mbox/main.go -m json -n <name> -u <https://lore.kernel.org/xxx/xxx>
 ```
 
 ### Flags
 
 ```text
 -c string
-    css file (default "assets/style.css")
+    CSS file, only works in html mode (default "assets/style.css")
 -j string
-    js file (default "assets/tools.js")
+    JS file, only works in html mode (default "assets/tools.js")
+-m string
+    Mode: "html" or "json" (default "html")
+-n string
+    Name (default "test")
 -u string
     https://lore.kernel.org/xxx/xxx
 ```
 
-### Using custom style
+### Using custom style for HTML
 
 The generated HTML file has the following format:
 

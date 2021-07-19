@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -11,9 +12,11 @@ import (
 )
 
 func main() {
+	m := flag.String("m", "html", "Mode: \"html\" or \"json\"")
+	n := flag.String("n", "test", "Name")
 	u := flag.String("u", "", "https://lore.kernel.org/xxx/xxx")
-	c := flag.String("c", "assets/style.css", "css file")
-	j := flag.String("j", "assets/tools.js", "js file")
+	c := flag.String("c", "assets/style.css", "CSS file, only works in html mode")
+	j := flag.String("j", "assets/tools.js", "JS file, only works in html mode")
 	flag.Parse()
 
 	url, err := lore.Parse(*u)
@@ -36,9 +39,28 @@ func main() {
 		log.Fatal(err)
 	}
 
-	lines := thread.Parse(*c, *j)
-	content := strings.Join(lines, "\n")
-	err = os.WriteFile("test.html", []byte(content), os.ModePerm)
+	content := ""
+	file := *n
+	switch *m {
+	case "html":
+		lines := thread.ParseHTML(*c, *j)
+		content = strings.Join(lines, "\n")
+		file += ".html"
+
+	case "json":
+		data, err := thread.ParseJSON()
+		if err != nil {
+			log.Fatal(err)
+		}
+		content = string(data)
+		file += ".json"
+
+	default:
+		err = fmt.Errorf("no such mode: %v", *m)
+		log.Fatal(err)
+	}
+
+	err = os.WriteFile(file, []byte(content), os.ModePerm)
 	if err != nil {
 		log.Fatal(err)
 	}

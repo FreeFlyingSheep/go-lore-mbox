@@ -6,10 +6,10 @@ import (
 	"strings"
 )
 
-type mode int
+type style int
 
 const (
-	undefined mode = iota
+	undefined style = iota
 	text
 	start
 	end
@@ -23,10 +23,25 @@ const (
 	quote
 )
 
+var styles = map[style]string{
+	undefined: "undefined",
+	text:      "text",
+	start:     "git-start",
+	end:       "git-end",
+	before:    "git-before",
+	after:     "git-after",
+	change:    "git-change",
+	diff:      "git-diff",
+	index:     "git-index",
+	add:       "git-add",
+	del:       "git-del",
+	quote:     "quote",
+}
+
 var gid int
 
-// Parse parses the thread for generating HTML.
-func (t *Thread) Parse(css, js string) []string {
+// ParseHTML parses the thread for generating HTML.
+func (t *Thread) ParseHTML(css, js string) []string {
 	content := []string{}
 
 	content = append(content, "<!DOCTYPE html>")
@@ -243,37 +258,22 @@ func parseButton(class string) []string {
 }
 
 func parseLines(lines []string) []string {
-	modes := map[mode]string{
-		undefined: "undefined",
-		text:      "text",
-		start:     "git-start",
-		end:       "git-end",
-		before:    "git-before",
-		after:     "git-after",
-		change:    "git-change",
-		diff:      "git-diff",
-		index:     "git-index",
-		add:       "git-add",
-		del:       "git-del",
-		quote:     "quote",
-	}
-
 	content := []string{}
-	m, last := undefined, undefined
+	s, last := undefined, undefined
 
 	for _, line := range lines {
-		m = parseMode(line)
-		if last != undefined && m != last {
+		s = parseStyle(line)
+		if last != undefined && s != last {
 			content = append(content, "</div>")
 		}
-		for k, v := range modes {
-			if last != k && m == k {
+		for k, v := range styles {
+			if last != k && s == k {
 				button := parseButton(v)
 				content = append(content, button...)
 				break
 			}
 		}
-		last = m
+		last = s
 		content = append(content, parseLine(line))
 	}
 
@@ -281,7 +281,7 @@ func parseLines(lines []string) []string {
 	return content
 }
 
-func parseMode(line string) mode {
+func parseStyle(line string) style {
 	if line == "---" {
 		return start
 	} else if line == "--" || line == "-- " {
