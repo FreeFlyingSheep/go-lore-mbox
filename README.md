@@ -91,7 +91,7 @@ The generated HTML file has the following format:
                         <li>Name <a href="mailto:Email">&lt;Email&gt;</a></li>
                     </ul>
                 </div>
-                
+
                 <div id="button-3" class="button">
                     <a href="javascript:fold('3')">[-]</a>
                 </div>

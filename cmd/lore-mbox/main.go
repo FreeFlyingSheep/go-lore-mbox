@@ -12,8 +12,8 @@ import (
 )
 
 func main() {
-	m := flag.String("m", "html", "Mode: \"html\" or \"json\"")
-	n := flag.String("n", "test", "Name")
+	m := flag.String("m", "html", "Mode: \"html\" or \"json\" or \"patch\"")
+	o := flag.String("n", "test", "Output filename or directory")
 	u := flag.String("u", "", "https://lore.kernel.org/xxx/xxx")
 	c := flag.String("c", "assets/style.css", "CSS file, only works in html mode")
 	j := flag.String("j", "assets/tools.js", "JS file, only works in html mode")
@@ -39,29 +39,43 @@ func main() {
 		log.Fatal(err)
 	}
 
-	content := ""
-	file := *n
+	contents := []string{}
+	files := []string{}
+	output := *o
 	switch *m {
 	case "html":
 		lines := thread.ParseHTML(*c, *j)
-		content = strings.Join(lines, "\n")
-		file += ".html"
+		contents = append(contents, strings.Join(lines, "\n"))
+		files = append(files, output+".html")
 
 	case "json":
 		data, err := thread.ParseJSON()
 		if err != nil {
 			log.Fatal(err)
 		}
-		content = string(data)
-		file += ".json"
+		contents = append(contents, string(data))
+		files = append(files, output+".json")
+
+	case "patch":
+		err := os.MkdirAll(*o, os.ModePerm)
+		if err != nil {
+			log.Fatal(err)
+		}
+		data := thread.ParsePatch()
+		for _, d := range data {
+			contents = append(contents, d[1])
+			files = append(files, d[0]+".patch")
+		}
 
 	default:
 		err = fmt.Errorf("no such mode: %v", *m)
 		log.Fatal(err)
 	}
 
-	err = os.WriteFile(file, []byte(content), os.ModePerm)
-	if err != nil {
-		log.Fatal(err)
+	for i, file := range files {
+		err = os.WriteFile(file, []byte(contents[i]), os.ModePerm)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
