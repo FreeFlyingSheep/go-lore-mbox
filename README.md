@@ -10,16 +10,8 @@ Golang cli for custom style lore.kernel.org.
 
 ## How to use
 
-HTML:
-
 ```bash
-go run cmd/lore-mbox/main.go -m html -n <name> -u <https://lore.kernel.org/xxx/xxx>
-```
-
-JSON:
-
-```bash
-go run cmd/lore-mbox/main.go -m json -n <name> -u <https://lore.kernel.org/xxx/xxx>
+go run cmd/lore-mbox/main.go -m <mode> -o <output> -u <https://lore.kernel.org/xxx/xxx>
 ```
 
 ### Flags
@@ -30,9 +22,9 @@ go run cmd/lore-mbox/main.go -m json -n <name> -u <https://lore.kernel.org/xxx/x
 -j string
     JS file, only works in html mode (default "assets/tools.js")
 -m string
-    Mode: "html" or "json" (default "html")
--n string
-    Name (default "test")
+    Mode: "html" or "json" or "patch" (default "html")
+-o string
+    Output filename or directory (default "test")
 -u string
     https://lore.kernel.org/xxx/xxx
 ```

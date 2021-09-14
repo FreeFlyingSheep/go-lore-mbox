@@ -13,7 +13,7 @@ import (
 
 func main() {
 	m := flag.String("m", "html", "Mode: \"html\" or \"json\" or \"patch\"")
-	o := flag.String("n", "test", "Output filename or directory")
+	o := flag.String("o", "test", "Output filename or directory")
 	u := flag.String("u", "", "https://lore.kernel.org/xxx/xxx")
 	c := flag.String("c", "assets/style.css", "CSS file, only works in html mode")
 	j := flag.String("j", "assets/tools.js", "JS file, only works in html mode")
@@ -41,12 +41,11 @@ func main() {
 
 	contents := []string{}
 	files := []string{}
-	output := *o
 	switch *m {
 	case "html":
 		lines := thread.ParseHTML(*c, *j)
 		contents = append(contents, strings.Join(lines, "\n"))
-		files = append(files, output+".html")
+		files = append(files, *o+".html")
 
 	case "json":
 		data, err := thread.ParseJSON()
@@ -54,17 +53,20 @@ func main() {
 			log.Fatal(err)
 		}
 		contents = append(contents, string(data))
-		files = append(files, output+".json")
+		files = append(files, *o+".json")
 
 	case "patch":
 		err := os.MkdirAll(*o, os.ModePerm)
 		if err != nil {
 			log.Fatal(err)
 		}
-		data := thread.ParsePatch()
+		data, err := thread.ParsePatch()
+		if err != nil {
+			log.Fatal(err)
+		}
 		for _, d := range data {
 			contents = append(contents, d[1])
-			files = append(files, d[0]+".patch")
+			files = append(files, *o+"/"+d[0]+".patch")
 		}
 
 	default:
